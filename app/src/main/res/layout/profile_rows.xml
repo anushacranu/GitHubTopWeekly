@@ -6,7 +6,7 @@
     android:paddingBottom="5dp"
     android:paddingLeft="5dp">
 
-    <ImageView xmlns:android="http://schemas.android.com/apk/res/android"
+    <ImageView
         android:id="@+id/profileImageView"
         android:layout_column="0"
         android:layout_width = "50dp"
@@ -25,6 +25,7 @@
         android:layout_height="wrap_content"
         android:textColor="#000000"
         android:textSize="20dp"
+        android:text="Username"
         android:paddingRight="8dp"/>
 
 </TableRow>

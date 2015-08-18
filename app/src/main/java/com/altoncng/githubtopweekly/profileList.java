@@ -1,5 +1,6 @@
 package com.altoncng.githubtopweekly;
 
+import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -12,6 +13,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -25,38 +27,51 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.util.ArrayList;
 
-public class profileList extends AppCompatActivity {
+public class profileList extends Fragment {
 
     private ListView profileListView;
     private profileArrayAdapter profileAdapter;
 
     ArrayList<profile> profList;
 
+    public static profileList newInstance(ArrayList<profile> profileList) {
+        profileList fragment = new profileList();
+        Bundle args = new Bundle();
+        args.putParcelableArrayList("profileAry", profileList);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    public profileList() {
+    }
+
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_profile_list);
 
-        //get parcelable arraylist data
-        profList = getIntent().getParcelableArrayListExtra("profileAry");
+        profList = getArguments().getParcelableArrayList("profileAry");
+    }
 
-        profileListView = (ListView) findViewById(R.id.gitHubTrendsListView);
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.activity_profile_list, container, false);
+        profileListView = (ListView) view.findViewById(R.id.gitHubTrendsListView);
 
         fillView();
 
-        //onclick, open profile page
         profileListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                if(id != -1)
-                    openLink(profList.get((int)id).profileLink);
+                if (id != -1)
+                    openLink(profList.get((int) id).profileLink);
             }
         });
-        new fetcher().execute();
+
+        return view;
     }
 
     public void fillView(){
-        LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        LayoutInflater inflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View labelRow = inflater.inflate(R.layout.profile_rows, null);
         profileListView.addHeaderView(labelRow);
     }
@@ -64,6 +79,8 @@ public class profileList extends AppCompatActivity {
     @Override
     public void onResume(){
         super.onResume();
+
+        new fetcher().execute();
     }
 
     public class fetcher extends AsyncTask<Void,Void, Void> {
@@ -76,7 +93,7 @@ public class profileList extends AppCompatActivity {
         @Override
         protected void onPostExecute(Void result)
         {
-            profileAdapter = new profileArrayAdapter(profileList.this, profList);
+            profileAdapter = new profileArrayAdapter(getActivity().getApplicationContext(), profList);
             profileListView.setAdapter(profileAdapter);
         }
     }

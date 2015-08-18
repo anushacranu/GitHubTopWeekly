@@ -1,5 +1,9 @@
 package com.altoncng.githubtopweekly;
 
+import android.app.Activity;
+import android.app.Fragment;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -20,8 +24,10 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.FrameLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -38,7 +44,7 @@ Keywords: Rest API, RecyclerView, Material Design
 Minimum supported API level: 14
 */
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity implements TrendsFragment.OnMyItemClickListener{
 
     private ArrayAdapter<String> listAdapter;
     private ListView listView;
@@ -46,75 +52,43 @@ public class MainActivity extends AppCompatActivity {
     ArrayList<String> trendItemName;
     ArrayList<trendingItem> trendList;
 
+    View fragmentFrameLayout;
+
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        listView = (ListView) findViewById( R.id.gitHubTrendsListView );
 
-        //OAuth2 token authentication
-        /*GitHubClient client = new GitHubClient();
-        client.setOAuth2Token("SlAV32hkKG");*/
+        fragmentFrameLayout = (ViewGroup) findViewById(R.id.frame1);
+        if (fragmentFrameLayout != null) {
 
-        //github api not actually useful here, as it doesn't have any trends data available.
+            // Add image selector fragment to the activity's container layout
+            TrendsFragment trendsFrag = new TrendsFragment();
+            FragmentTransaction fragmentTransaction = this.getFragmentManager().beginTransaction();
+            fragmentTransaction.replace(fragmentFrameLayout.getId(), trendsFrag,
+                    TrendsFragment.class.getName());
+
+            // Commit the transaction
+            fragmentTransaction.commit();
+        }
     }
 
     @Override
-    protected void onResume(){
+    public void onResume(){
         super.onResume();
 
-        new fetcher().execute();
     }
 
-    public class fetcher extends AsyncTask<Void,Void, Void> {
+    @Override
+    public void onProjectSelected(ArrayList<profile> trendList) {
 
-        @Override
-        protected Void doInBackground(Void... params) {
-            try {//connect to github site to scrape trending weekly page
-                Document doc = Jsoup.connect("https://github.com/trending?since=weekly").get();
-                Elements trendingElements = doc.getElementsByClass("repo-list-item");//repo-list-item is the trending list
+        FragmentManager fragmentManager = getFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
-                trendList = new ArrayList<trendingItem>();
-                trendItemName = new ArrayList<String>();
+        profileList fragment = profileList.newInstance(trendList);
+        fragmentTransaction.replace(R.id.frame1, fragment);
+        fragmentTransaction.commit();
 
-                for(Element el: trendingElements){
-                    String projectName = el.getElementsByClass("repo-list-name").text();
-                    String projectDetails = el.getElementsByClass("repo-list-meta").text();
-
-                    Elements topContributors = el.select("img[src]");
-
-                    ArrayList<profile> profileList = new ArrayList<profile>();
-                    for(Element pro: topContributors){
-                        profile tempProfile = new profile(pro.attr("title"), "https://github.com/" + pro.attr("title"), pro.attr("src"));
-                        profileList.add(tempProfile);
-                    }
-
-                    trendingItem tempTrendingItem = new trendingItem(projectName, projectDetails, profileList);
-                    trendItemName.add(projectName);
-                    trendList.add(tempTrendingItem);//list of trending items and relevant data
-                }
-
-            }catch (IOException ex){
-                Toast.makeText(getApplicationContext(), "IOException, connection failed", Toast.LENGTH_LONG).show();
-            }return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void result)
-        {
-            listAdapter = new ArrayAdapter<String>(MainActivity.this, R.layout.rows, trendItemName);
-            listView.setAdapter(listAdapter);
-
-            //click a list item to fire intent and bring up profileList activity
-            listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    Intent intent = new Intent(MainActivity.this, profileList.class);
-                    intent.putParcelableArrayListExtra("profileAry", trendList.get(position).getContributors());
-                    startActivity(intent);
-                }
-            });
-        }
     }
 
     @Override
