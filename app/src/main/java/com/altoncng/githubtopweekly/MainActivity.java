@@ -6,6 +6,7 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -29,6 +30,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.FrameLayout;
 import android.widget.ListView;
+import android.widget.TableLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -53,6 +55,9 @@ public class MainActivity extends Activity implements TrendsFragment.OnMyItemCli
     ArrayList<trendingItem> trendList;
 
     View fragmentFrameLayout;
+    View fragmentFrameProfileLayout;
+
+    String range;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -60,17 +65,35 @@ public class MainActivity extends Activity implements TrendsFragment.OnMyItemCli
         setContentView(R.layout.activity_main);
 
         fragmentFrameLayout = (ViewGroup) findViewById(R.id.frame1);
-        if (fragmentFrameLayout != null) {
 
-            // Add image selector fragment to the activity's container layout
-            TrendsFragment trendsFrag = new TrendsFragment();
-            FragmentTransaction fragmentTransaction = this.getFragmentManager().beginTransaction();
-            fragmentTransaction.replace(fragmentFrameLayout.getId(), trendsFrag,
-                    TrendsFragment.class.getName());
+        Intent intent = getIntent();
+        range = intent.getStringExtra("range");
 
-            // Commit the transaction
-            fragmentTransaction.commit();
+        TrendsFragment trendsFrag = new TrendsFragment();
+
+        Bundle bundle = new Bundle();
+        bundle.putString("range", range);
+        trendsFrag.setArguments(bundle);
+
+        FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
+
+        if(getResources().getConfiguration().orientation != Configuration.ORIENTATION_LANDSCAPE){
+            //Log.w("onProjectSelected", "githubapp onCreate not null, " + TrendsFragment.class.getName());
+            fragmentTransaction.replace(fragmentFrameLayout.getId(), trendsFrag, TrendsFragment.class.getName());
+        }else{
+            //Log.w("onProjectSelected", "githubapp onCreate else, " + TrendsFragment.class.getName() + " " + profileList.class.getName());
+            fragmentFrameProfileLayout = (ViewGroup) findViewById(R.id.frame2);
+            profileList profileFragment = new profileList();
+
+            fragmentFrameLayout.setLayoutParams(new TableLayout.LayoutParams(
+                    0, TableLayout.LayoutParams.WRAP_CONTENT, 1));
+            fragmentFrameProfileLayout.setLayoutParams(new TableLayout.LayoutParams(
+                    0, TableLayout.LayoutParams.WRAP_CONTENT, 1));
+
+            fragmentTransaction.replace(fragmentFrameLayout.getId(), trendsFrag, TrendsFragment.class.getName());
+            fragmentTransaction.replace(fragmentFrameProfileLayout.getId(), profileFragment, profileList.class.getName());
         }
+        fragmentTransaction.commit();
     }
 
     @Override
@@ -82,34 +105,21 @@ public class MainActivity extends Activity implements TrendsFragment.OnMyItemCli
     @Override
     public void onProjectSelected(ArrayList<profile> trendList) {
 
-        FragmentManager fragmentManager = getFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        profileList profileFragment = (profileList) getFragmentManager()
+                .findFragmentByTag(profileList.class.getName());
 
-        profileList fragment = profileList.newInstance(trendList);
-        fragmentTransaction.replace(R.id.frame1, fragment);
-        fragmentTransaction.commit();
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            Log.w("onProjectSelected", "githubapp onProjectSelected not null");
+            profileFragment.getProjectData(trendList);
+        }else {
+            Log.w("onProjectSelected", "githubapp onProjectSelected is null");
+            FragmentManager fragmentManager = getFragmentManager();
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+            profileFragment = profileList.newInstance(trendList);
+            fragmentTransaction.replace(R.id.frame1, profileFragment);
+            fragmentTransaction.addToBackStack(TrendsFragment.class.getName());
+            fragmentTransaction.commit();
         }
-
-        return super.onOptionsItemSelected(item);
     }
 }

@@ -3,6 +3,7 @@ package com.altoncng.githubtopweekly;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -48,8 +49,8 @@ public class profileList extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        profList = getArguments().getParcelableArrayList("profileAry");
+        if(getArguments() != null)
+            profList = getArguments().getParcelableArrayList("profileAry");
     }
 
     @Override
@@ -79,8 +80,9 @@ public class profileList extends Fragment {
     @Override
     public void onResume(){
         super.onResume();
-
-        new fetcher().execute();
+        Log.w("profileList", "githubapp profileList onResume");
+        if(profList != null)
+            new fetcher().execute();
     }
 
     public class fetcher extends AsyncTask<Void,Void, Void> {
@@ -102,5 +104,12 @@ public class profileList extends Fragment {
         Uri uri = Uri.parse(link); // missing 'http://' will cause crash
         Intent intent = new Intent(Intent.ACTION_VIEW, uri);
         startActivity(intent);
+    }
+
+    public void getProjectData(ArrayList<profile> trendList){
+        profList = trendList;
+        Log.w("profileList", "githubapp profileList getProjectData");
+        new fetcher().execute();
+        Log.w("profileList", "githubapp profileList getProjectData fetcher.execute");
     }
 }

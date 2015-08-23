@@ -7,6 +7,7 @@
     android:paddingRight="8dp"
     android:paddingBottom="20dp"
     android:layout_marginBottom="20dp"
+    android:text="Trending Projects"
     android:textSize="20dp"/>
 
 

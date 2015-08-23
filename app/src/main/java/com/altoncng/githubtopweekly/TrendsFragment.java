@@ -6,6 +6,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,6 +34,8 @@ public class TrendsFragment extends Fragment{
 
     private OnMyItemClickListener listener;
 
+    String range;
+
     public static TrendsFragment newInstance() {
         TrendsFragment fragment = new TrendsFragment();
         Bundle args = new Bundle();
@@ -47,8 +50,12 @@ public class TrendsFragment extends Fragment{
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
 
+        // handle intent extras
+        Bundle extras = getActivity().getIntent().getExtras();
+        if(extras != null)
+        {
+            range = extras.getString("range");
         }
     }
 
@@ -56,13 +63,11 @@ public class TrendsFragment extends Fragment{
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.main_fragment_1, container, false);
         listView = (ListView) view.findViewById(R.id.gitHubTrendsListView);
-
-
         return view;
     }
 
     @Override
-    public void onResume(){
+    public void onResume() {
         super.onResume();
         new fetcher().execute();
     }
@@ -92,7 +97,7 @@ public class TrendsFragment extends Fragment{
         @Override
         protected Void doInBackground(Void... params) {
             try {//connect to github site to scrape trending weekly page
-                Document doc = Jsoup.connect("https://github.com/trending?since=weekly").get();
+                Document doc = Jsoup.connect("https://github.com/trending?since=" + range).get();
                 Elements trendingElements = doc.getElementsByClass("repo-list-item");//repo-list-item is the trending list
 
                 trendList = new ArrayList<trendingItem>();
@@ -123,16 +128,20 @@ public class TrendsFragment extends Fragment{
         @Override
         protected void onPostExecute(Void result)
         {
-            listAdapter = new ArrayAdapter<String>(getActivity().getApplicationContext(), R.layout.rows, trendItemName);
+            Log.w("profileList", "githubapp trendsFragment onPostExecute " + getActivity());
+            if(getActivity() == null || getActivity().isFinishing()) {//wait a bit to let activity attach?
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                }
+            }if(getActivity() != null && !getActivity().isFinishing())
+                listAdapter = new ArrayAdapter<String>(getActivity(), R.layout.rows, trendItemName);
             listView.setAdapter(listAdapter);
 
             //click a list item to fire intent and bring up profileList activity
             listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    /*Intent intent = new Intent(getActivity().getApplicationContext(), profileList.class);
-                    intent.putParcelableArrayListExtra("profileAry", trendList.get(position).getContributors());
-                    startActivity(intent);*/
                     openProfile(trendList.get(position).getContributors());
                 }
             });
