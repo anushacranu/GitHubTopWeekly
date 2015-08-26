@@ -15,23 +15,49 @@
         android:layout_gravity="center"
         android:src="@drawable/githubicon"/>
 
-    <Spinner
-        android:id="@+id/trendsRangeSpinner"
+    <LinearLayout
+        android:id="@+id/linLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_below="@id/gitHubTrendingImage"
-        android:entries="@array/trends_range"
-        android:prompt="@string/trends_prompt"
-        android:layout_centerHorizontal="true"
-        android:textAlignment="center"
-        android:background="#FFFFFF"/>
+        android:layout_below="@id/gitHubTrendingImage">
+
+        <Spinner
+            android:id="@+id/trendsRangeSpinner"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:entries="@array/trends_range"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:layout_marginLeft="35dp"
+            android:layout_marginRight="3dp"
+            android:prompt="@string/trends_prompt"
+            android:textAlignment="center"
+            android:background="#FFFFFF"/>
+
+        <Spinner
+            android:id="@+id/languagesSpinner"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:entries="@array/languages"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:layout_marginLeft="3dp"
+            android:layout_marginRight="35dp"
+            android:layout_toRightOf="@id/trendsRangeSpinner"
+            android:textAlignment="center"
+            android:background="#FFFFFF"/>
+
+    </LinearLayout>
 
     <Button
         android:id="@+id/confirmButton"
-        android:layout_below="@id/trendsRangeSpinner"
+        android:layout_below="@id/linLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
         android:text="Confirm"
         android:layout_centerHorizontal="true"
         android:textColor="#FFFFFF"/>

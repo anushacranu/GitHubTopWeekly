@@ -35,6 +35,7 @@ public class TrendsFragment extends Fragment{
     private OnMyItemClickListener listener;
 
     String range;
+    String language;
 
     public static TrendsFragment newInstance() {
         TrendsFragment fragment = new TrendsFragment();
@@ -56,6 +57,8 @@ public class TrendsFragment extends Fragment{
         if(extras != null)
         {
             range = extras.getString("range");
+            language = extras.getString("language");
+            language = language.replaceAll(" ", "-");
         }
     }
 
@@ -96,33 +99,39 @@ public class TrendsFragment extends Fragment{
 
         @Override
         protected Void doInBackground(Void... params) {
-            try {//connect to github site to scrape trending weekly page
-                Document doc = Jsoup.connect("https://github.com/trending?since=" + range).get();
-                Elements trendingElements = doc.getElementsByClass("repo-list-item");//repo-list-item is the trending list
+            int count = 0;
+            int maxTries = 3;
+            while(true) {
+                try {//connect to github site to scrape trending weekly page
+                    Document doc = Jsoup.connect("https://github.com/trending?" + language + "since=" + range).get();
+                    Elements trendingElements = doc.getElementsByClass("repo-list-item");//repo-list-item is the trending list
 
-                trendList = new ArrayList<trendingItem>();
-                trendItemName = new ArrayList<String>();
+                    trendList = new ArrayList<trendingItem>();
+                    trendItemName = new ArrayList<String>();
 
-                for(Element el: trendingElements){
-                    String projectName = el.getElementsByClass("repo-list-name").text();
-                    String projectDetails = el.getElementsByClass("repo-list-meta").text();
+                    for(Element el: trendingElements){
+                        String projectName = el.getElementsByClass("repo-list-name").text();
+                        String projectDetails = el.getElementsByClass("repo-list-meta").text();
 
-                    Elements topContributors = el.select("img[src]");
+                        Elements topContributors = el.select("img[src]");
 
-                    ArrayList<profile> profileList = new ArrayList<profile>();
-                    for(Element pro: topContributors){
-                        profile tempProfile = new profile(pro.attr("title"), "https://github.com/" + pro.attr("title"), pro.attr("src"));
-                        profileList.add(tempProfile);
-                    }
+                        ArrayList<profile> profileList = new ArrayList<profile>();
+                        for(Element pro: topContributors){
+                            profile tempProfile = new profile(pro.attr("title"), "https://github.com/" + pro.attr("title"), pro.attr("src"));
+                            profileList.add(tempProfile);
+                        }
 
-                    trendingItem tempTrendingItem = new trendingItem(projectName, projectDetails, profileList);
-                    trendItemName.add(projectName);
-                    trendList.add(tempTrendingItem);//list of trending items and relevant data
+                        trendingItem tempTrendingItem = new trendingItem(projectName, projectDetails, profileList);
+                        trendItemName.add(projectName);
+                        trendList.add(tempTrendingItem);//list of trending items and relevant data
+                    }break;
+
+                }catch (IOException ex){
+                    if (++count == maxTries)
+                        ;
                 }
-
-            }catch (IOException ex){
-                Toast.makeText(getActivity(), "IOException, connection failed", Toast.LENGTH_LONG).show();
-            }return null;
+            }
+            return null;
         }
 
         @Override

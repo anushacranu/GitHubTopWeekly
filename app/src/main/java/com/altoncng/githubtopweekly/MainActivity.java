@@ -58,6 +58,7 @@ public class MainActivity extends Activity implements TrendsFragment.OnMyItemCli
     View fragmentFrameProfileLayout;
 
     String range;
+    String language;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -68,11 +69,15 @@ public class MainActivity extends Activity implements TrendsFragment.OnMyItemCli
 
         Intent intent = getIntent();
         range = intent.getStringExtra("range");
+        language = "l=" + intent.getStringExtra("language") + "&";
+        if(language.equals("l=All languages&"))
+            language = "";
 
         TrendsFragment trendsFrag = new TrendsFragment();
 
         Bundle bundle = new Bundle();
         bundle.putString("range", range);
+        bundle.putString("language", language);
         trendsFrag.setArguments(bundle);
 
         FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
