@@ -69,9 +69,7 @@ public class MainActivity extends Activity implements TrendsFragment.OnMyItemCli
 
         Intent intent = getIntent();
         range = intent.getStringExtra("range");
-        language = "l=" + intent.getStringExtra("language") + "&";
-        if(language.equals("l=All languages&"))
-            language = "";
+        language = intent.getStringExtra("language");
 
         TrendsFragment trendsFrag = new TrendsFragment();
 

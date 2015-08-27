@@ -26,7 +26,7 @@ import java.util.ArrayList;
 
 public class TrendsFragment extends Fragment{
 
-    private ArrayAdapter<String> listAdapter;
+    private trendsArrayAdapter listAdapter;
     private ListView listView;
 
     ArrayList<String> trendItemName;
@@ -57,8 +57,13 @@ public class TrendsFragment extends Fragment{
         if(extras != null)
         {
             range = extras.getString("range");
-            language = extras.getString("language");
+            language = "l=" + extras.getString("language") + "&";
+            if(language.equals("l=All languages&"))
+                language = "";
             language = language.replaceAll(" ", "-");
+
+            Toast.makeText(getActivity(),"Tap for list of contributors or tap and hold for project page",Toast.LENGTH_LONG).show();
+            Log.w("githubapp", "githubapp trendsfragment onCreate " + language);
         }
     }
 
@@ -103,6 +108,7 @@ public class TrendsFragment extends Fragment{
             int maxTries = 3;
             while(true) {
                 try {//connect to github site to scrape trending weekly page
+                    Log.w("githubapp", "githubapp trendsFragment fetcher " + language);
                     Document doc = Jsoup.connect("https://github.com/trending?" + language + "since=" + range).get();
                     Elements trendingElements = doc.getElementsByClass("repo-list-item");//repo-list-item is the trending list
 
@@ -110,8 +116,13 @@ public class TrendsFragment extends Fragment{
                     trendItemName = new ArrayList<String>();
 
                     for(Element el: trendingElements){
+                        //getElementsByClass("classname") gets a list of elements with that class within Element el
+                        //.text() gets all children's text, while select gets the elements with the selection (a[href] here
+                        //a being the element and href being the attribute within a, denoted by []. .attr() gets the value of that attribute
                         String projectName = el.getElementsByClass("repo-list-name").text();
+                        String projectLink = el.getElementsByClass("repo-list-name").select("a[href]").attr("href");
                         String projectDetails = el.getElementsByClass("repo-list-meta").text();
+                        projectDetails = projectDetails.replace("Built by", "");
 
                         Elements topContributors = el.select("img[src]");
 
@@ -121,7 +132,7 @@ public class TrendsFragment extends Fragment{
                             profileList.add(tempProfile);
                         }
 
-                        trendingItem tempTrendingItem = new trendingItem(projectName, projectDetails, profileList);
+                        trendingItem tempTrendingItem = new trendingItem(projectName, projectDetails, projectLink, profileList);
                         trendItemName.add(projectName);
                         trendList.add(tempTrendingItem);//list of trending items and relevant data
                     }break;
@@ -137,14 +148,14 @@ public class TrendsFragment extends Fragment{
         @Override
         protected void onPostExecute(Void result)
         {
-            Log.w("profileList", "githubapp trendsFragment onPostExecute " + getActivity());
+            //Log.w("profileList", "githubapp trendsFragment onPostExecute " + getActivity());
             if(getActivity() == null || getActivity().isFinishing()) {//wait a bit to let activity attach?
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
                 }
             }if(getActivity() != null && !getActivity().isFinishing())
-                listAdapter = new ArrayAdapter<String>(getActivity(), R.layout.rows, trendItemName);
+                listAdapter = new trendsArrayAdapter(getActivity().getApplicationContext(), trendList);
             listView.setAdapter(listAdapter);
 
             //click a list item to fire intent and bring up profileList activity
@@ -154,11 +165,27 @@ public class TrendsFragment extends Fragment{
                     openProfile(trendList.get(position).getContributors());
                 }
             });
+
+            listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+
+                public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
+                                               int pos, long id) {
+                    Log.v("long clicked", "pos: " + pos);
+                    openLink(trendList.get(pos).getLink());
+                    return true;
+                }
+            });
         }
     }
 
     public void openProfile(ArrayList<profile> trendList){
         listener.onProjectSelected(trendList);
+    }
+
+    public void openLink(String link){
+        Uri uri = Uri.parse("https://github.com" + link); // missing 'http://' will cause crash
+        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+        startActivity(intent);
     }
 
 }

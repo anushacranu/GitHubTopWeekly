@@ -9,13 +9,20 @@ public class trendingItem {
 
     private String name;
     private String details;
+    private String link;
     private ArrayList<profile> contributors;
 
-    public trendingItem(){}
+    public trendingItem(){
+        name = "";
+        details = "";
+        link = "";
+        contributors = new ArrayList<profile>();
+    }
 
-    public trendingItem(String name, String details, ArrayList<profile> contributor){
+    public trendingItem(String name, String details, String link, ArrayList<profile> contributor){
         this.name = name;
         this.details = details;
+        this.link = link;
         this.contributors = new ArrayList<profile>();
         for(profile p: contributor)
             contributors.add(new profile(p.getName(), p.getProfileLink(), p.getPictureLink()));
@@ -43,6 +50,14 @@ public class trendingItem {
 
     public void setDetails(String details) {
         this.details = details;
+    }
+
+    public String getLink() {
+        return link;
+    }
+
+    public void setLink(String link) {
+        this.link = link;
     }
 
 }
